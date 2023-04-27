@@ -1,3 +1,5 @@
+import os
+
 import torch
 import torch.nn as nn
 from torch.utils.checkpoint import checkpoint
@@ -96,8 +98,10 @@ class FrozenCLIPEmbedder(AbstractEncoder):
                  freeze=True, layer="last", layer_idx=None):  # clip-vit-base-patch32
         super().__init__()
         assert layer in self.LAYERS
-        self.tokenizer = CLIPTokenizer.from_pretrained(version)
-        self.transformer = CLIPTextModel.from_pretrained(version)
+        print('In FrozenCLIP')
+        print(os.getcwd())
+        self.tokenizer = CLIPTokenizer.from_pretrained(version, cache_dir="/root/model_cache")
+        self.transformer = CLIPTextModel.from_pretrained(version, cache_dir="/root/model_cache")
         self.device = device
         self.max_length = max_length
         if freeze:
@@ -144,7 +148,10 @@ class FrozenOpenCLIPEmbedder(AbstractEncoder):
                  freeze=True, layer="last"):
         super().__init__()
         assert layer in self.LAYERS
-        model, _, _ = open_clip.create_model_and_transforms(arch, device=torch.device('cpu'), pretrained=version)
+        model, _, _ = open_clip.create_model_and_transforms(arch,
+                                                            device=torch.device('cpu'),
+                                                            pretrained=version,
+                                                            cache_dir="/root/model_cache")
         del model.visual
         self.model = model
 
